@@ -1,15 +1,14 @@
-import Request from "./Request"
-import { transform } from "./interceptorHooks"
-
+import Request from './Request'
+import { transform } from './interceptorHooks'
 
 // 具体使用时先实例一个请求对象
 const request = new Request({
   baseURL: '/api',
   timeout: 5000,
-  interceptorHooks: transform
+  interceptorHooks: transform,
 })
 
-
+export default request
 
 interface ResModel {
   str: string
@@ -21,12 +20,12 @@ request
     '/abc',
     {
       a: 'aa',
-      b: 'bb'
+      b: 'bb',
     },
     {
       requestOptions: {
-        globalErrorMessage: true
-      }
+        globalErrorMessage: true,
+      },
     }
   )
   .then((res) => {
