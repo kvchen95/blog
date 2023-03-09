@@ -1,6 +1,6 @@
 import axios from 'axios'
 import type { AxiosInstance, AxiosResponse } from 'axios'
-import { InterceptorHooks, ExpandAxiosResponse, ExpandAxiosRequestConfig, BaseApiResponse } from './types'
+import { InterceptorHooks, ExpandAxiosRequestConfig, BaseApiResponse } from './types'
 
 
 // 导出Request类，可以用来自定义传递配置来创建实例
