@@ -66,7 +66,7 @@ const transform: InterceptorHooks = {
       return Promise.reject(res.data)
     }
     if (res.config.requestOptions?.globalSuccessMessage) {
-      // 这里全局提示求求成功
+      // 这里全局提示请求成功
       console.log(res.data.message)
     }
     // 请求返回值，建议将 返回值 进行解构
