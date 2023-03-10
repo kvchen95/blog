@@ -10,7 +10,7 @@
 
   看了一下，很多人封装 `axios` 的时候都用 `promise` 包装了一层，甚至更有甚者用起了 `try catch`。为什么反对用 `promise` 包装，因为 `axios` 返回的就是个 `promise` ，脱裤子放屁，完全没必要🧔‍♀️。至于 `try catch` 这个是用于捕获未知错误的，比如 `JSON.parse` 的时候，有些字符串就是无法转换。记住一句话，滥用 `try catch` 和随地大小便没有区别。
 
-- **一个 request 方法梭哈，噗！我一口老血🥵**
+- **一个 `request` 方法梭哈，噗！我一口老血🥵**
 
   部分人直接就一个 `request` 方法梭哈，所有参数与配置都写在一起，看起来一点也不清晰，简洁。请求有多种方式，`get`，`post`，`put...`，最合理的请求方式应该是 `instance[method](url, data, options)`。对应 请求地址、请求参数、请求配置项，一目了然。
 
@@ -23,7 +23,7 @@
 
   封装的时候我们都会封装一个请求类，但对应拦截器应该解耦出来。因为每个域名的拦截器处理可能不一致，写死的话封装请求类的意义也就没有了。
 
-- **接口请求 then 里面又判断后端返回码判断请求是否成功，太狗血了！😞**
+- **接口请求 `then` 里面又判断后端返回码判断请求是否成功，太狗血了！😞**
 
   🧑‍🏫看到下面这种代码，给我难受的啊。
   ```javascript
@@ -41,7 +41,7 @@
 
 ## 开整
 
-  `OK`，吐槽了这么多，这时候肯定就有人说了，光说谁不会啊，你整一个啊！🤐
+  `OK`，吐槽了这么多，这时候肯定就有人说了，光说谁不会啊，你整一个啊！🤐  
   瞧你这话说的，一点活没干，还让你白嫖了。你咋这么能呢🙄？  
   不过话说回来，我不要活在他人的评价里，我做这件事情不是因为你的讽刺或者吹捧，而是我自己要做🧑‍🦱。  
   接下来定一下要做的事情  
@@ -88,9 +88,9 @@ export interface AxiosResponse<T = any, D = any> {
 ```
 
 
-## 源码
+## Talk is cheap，show me the code.
 
-好的，下面是全部代码。基本注释都加上了。
+代码也不多，就也不多解释了，基本注释都加上了。下面是全部代码。
 
 ```typescript
 import axios from 'axios'
@@ -132,55 +132,6 @@ export interface InterceptorHooks {
   requestInterceptorCatch?: (error: any) => any
   responseInterceptor?: (response: AxiosResponse) => AxiosResponse | Promise<AxiosResponse>
   responseInterceptorCatch?: (error: any) => any
-}
-
-const transform: InterceptorHooks = {
-  requestInterceptor(config) {
-    // 请求头部处理，如添加 token
-    const token = 'token-value'
-    if (token) {
-      config!.headers!.Authorization = token
-    }
-    return config
-  },
-  requestInterceptorCatch(err) {
-    // 请求错误，这里可以用全局提示框进行提示
-    return Promise.reject(err)
-  },
-  responseInterceptor(result) {
-    // 因为 axios 返回不支持扩展自定义配置，需要自己断言一下
-    const res = result as ExpandAxiosResponse
-    // 与后端约定的请求成功码
-    const SUCCESS_CODE = 1
-    if (res.status !== 200) return Promise.reject(res)
-    if (res.data.code !== SUCCESS_CODE) {
-      if (res.config.requestOptions?.globalErrorMessage) {
-        // 这里全局提示错误
-        console.error(res.data.message)
-      }
-      return Promise.reject(res.data)
-    }
-    if (res.config.requestOptions?.globalSuccessMessage) {
-      // 这里全局提示请求成功
-      console.log(res.data.message)
-    }
-    // 请求返回值，建议将 返回值 进行解构
-    return res.data.result
-  },
-  responseInterceptorCatch(err) {
-    // 这里用来处理 http 常见错误，进行全局提示
-    const mapErrorStatus = new Map([
-      [400, '请求方式错误'],
-      [401, '请重新登录'],
-      [403, '拒绝访问'],
-      [404, '请求地址有误'],
-      [500, '服务器出错']
-    ])
-    const message = mapErrorStatus.get(err.response.status) || '请求出错，请稍后再试'
-    // 此处全局报错
-    console.error(message)
-    return Promise.reject(err.response)
-  }
 }
 
 // 导出Request类，可以用来自定义传递配置来创建实例
@@ -239,6 +190,56 @@ export default class Request {
 以及使用的 `demo`。这个保姆级服务满意吗？
 
 ```typescript
+// 请求拦截器
+const transform: InterceptorHooks = {
+  requestInterceptor(config) {
+    // 请求头部处理，如添加 token
+    const token = 'token-value'
+    if (token) {
+      config!.headers!.Authorization = token
+    }
+    return config
+  },
+  requestInterceptorCatch(err) {
+    // 请求错误，这里可以用全局提示框进行提示
+    return Promise.reject(err)
+  },
+  responseInterceptor(result) {
+    // 因为 axios 返回不支持扩展自定义配置，需要自己断言一下
+    const res = result as ExpandAxiosResponse
+    // 与后端约定的请求成功码
+    const SUCCESS_CODE = 1
+    if (res.status !== 200) return Promise.reject(res)
+    if (res.data.code !== SUCCESS_CODE) {
+      if (res.config.requestOptions?.globalErrorMessage) {
+        // 这里全局提示错误
+        console.error(res.data.message)
+      }
+      return Promise.reject(res.data)
+    }
+    if (res.config.requestOptions?.globalSuccessMessage) {
+      // 这里全局提示请求成功
+      console.log(res.data.message)
+    }
+    // 请求返回值，建议将 返回值 进行解构
+    return res.data.result
+  },
+  responseInterceptorCatch(err) {
+    // 这里用来处理 http 常见错误，进行全局提示
+    const mapErrorStatus = new Map([
+      [400, '请求方式错误'],
+      [401, '请重新登录'],
+      [403, '拒绝访问'],
+      [404, '请求地址有误'],
+      [500, '服务器出错']
+    ])
+    const message = mapErrorStatus.get(err.response.status) || '请求出错，请稍后再试'
+    // 此处全局报错
+    console.error(message)
+    return Promise.reject(err.response)
+  }
+}
+
 // 具体使用时先实例一个请求对象
 const request = new Request({
   baseURL: '/api',
@@ -270,3 +271,5 @@ request
     console.log(res.str)
   })
 ```
+可以看到鼠标浮上去就能看到定义了，完美！  
+![code.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/716b9cecba0c496cbb347e41507caef7~tplv-k3u1fbpfcp-watermark.image?)
