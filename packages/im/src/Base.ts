@@ -66,9 +66,9 @@ export default abstract class IM {
   }
 
   // 监听 socket
-  abstract listen(): void
+  protected abstract listen(): void
 
-  wsCloseOrError() {
+  protected wsCloseOrError() {
     if (this.isCloseByError) {
       return
     }
@@ -81,7 +81,7 @@ export default abstract class IM {
     this.reconSocketFn()
   }
 
-  reconSocketFn() {
+  protected reconSocketFn() {
     console.log('重连')
     clearTimeout(this.reconnectTimer)
     if (!this.isReconnect || this.reconnectCount > this.reconnectMaxTimes) {
@@ -96,11 +96,11 @@ export default abstract class IM {
     }, 5000)
   }
   // 发送消息不再重连
-  abstract sendStopReconnect(): void
+  protected abstract sendStopReconnect(): void
   // 发送心跳消息
-  abstract sendHeartbeat(): void
+  protected abstract sendHeartbeat(): void
   // 发送消息
-  send(msg: any) {
+  protected send(msg: any) {
     if (this.isConnect) {
       this.ws!.send(JSON.stringify(msg))
     } else {
@@ -108,7 +108,7 @@ export default abstract class IM {
     }
   }
   // 开始心跳
-  startHeartbeat() {
+  protected startHeartbeat() {
     clearTimeout(this.heartbeatTimer)
     if (!this.isHeartbeat) {
       return

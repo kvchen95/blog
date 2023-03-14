@@ -81,12 +81,12 @@ export default class IMCompony extends IM {
   }
 
   // 触发外部事件监听
-  handleEvent<T = any>(name: keyof Events, data?: T) {
+  protected handleEvent<T = any>(name: keyof Events, data?: T) {
     this.emitter.emit(name, data)
   }
 
   /** 授权 */
-  auth(msg: any) {
+  protected auth(msg: any) {
     // 看自己公司业务逻辑代码是否有授权逻辑
     // const bm = md5(msg.result.seed + this.config.key)
     const reJson = {
@@ -101,19 +101,19 @@ export default class IMCompony extends IM {
     this.startHeartbeat()
   }
 
-  sendStopReconnect() {
+  protected sendStopReconnect() {
     // 通知连接
     this.handleEvent('reconnect')
   }
   // 发送心跳
-  sendHeartbeat() {
+  protected sendHeartbeat() {
     const sendjson = {
       cmd: 'wd_heartbeat',
     }
     this.send(sendjson)
   }
   // 监听 socket 事件
-  listen() {
+  protected listen() {
     // socket 连接成功事件
     this.ws!.onopen = (data) => {
       console.log('SUCCESS: ws 连接成功', data)
