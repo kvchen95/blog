@@ -5,12 +5,19 @@ import type { Emitter } from 'mitt'
 
 // 前端 IM 监听事件 枚举
 const enum SOCKET_EVENTS_FRONTEND {
+  // 连接成功通知
   CONNECT = 'connect',
+  // 重连通知
   RECONNECT = 'reconnect',
+  // 异地登录通知
   CONNECT_OTHER_PLACE = 'connect_other_place',
+  // 消息通知
   MESSAGE = 'message',
+  // 心跳通知
   HEARTBEAT = 'heartbeat',
+  // 连接出错通知
   ERROR = 'error',
+  // 连接关闭通知
   CLOSE = 'close',
 }
 
@@ -35,35 +42,45 @@ const enum SOCKET_EVENTS_BACKEND {
 // SOCKET_EVENTS_FRONTEND.CONNECT
 
 interface IMConfig {
+  // IM 登录授权 key
   key: string
+  // IM 用户 Id
   userId: number
+  // IM 房间 Id
   roomId: number
 }
 
-// 根据自己公司业务代码扩展 IM
+// 根据自己公司业务代码扩展 IM 类
 export default class IMCompony extends IM {
+  // 对应自己公司业务配置信息
   config: IMConfig
+  // 发布订阅事件处理
   emitter: Emitter<Events>
 
   constructor(roomId: number, userId: number) {
-    super('socketUrl') //
+    super('socketUrl') // 拿到 socket url
 
     if (!roomId) throw 'ERR: roomId must be required！'
     if (!userId) throw 'ERR: userId must be required！'
+    // 配置相关
     this.config = {
       key: '', // key
       userId: userId,
       roomId: roomId,
     }
+    // 初始化发布订阅事件器
     this.emitter = mitt<Events>()
+    // socket 初始化
     this.init()
   }
 
+  // 添加外部事件监听
   addEventListener(event: keyof Events, cb: (params: any) => void) {
     this.emitter.on(event, cb)
     return this
   }
 
+  // 触发外部事件监听
   handleEvent<T = any>(name: keyof Events, data?: T) {
     this.emitter.emit(name, data)
   }
@@ -85,15 +102,19 @@ export default class IMCompony extends IM {
   }
 
   sendStopReconnect() {
-    this.emitter.emit('reconnect')
+    // 通知连接
+    this.handleEvent('reconnect')
   }
+  // 发送心跳
   sendHeartbeat() {
     const sendjson = {
       cmd: 'wd_heartbeat',
     }
     this.send(sendjson)
   }
+  // 监听 socket 事件
   listen() {
+    // socket 连接成功事件
     this.ws!.onopen = (data) => {
       console.log('SUCCESS: ws 连接成功', data)
       clearTimeout(this.reconnectTimer)
@@ -102,6 +123,7 @@ export default class IMCompony extends IM {
       this.handleEvent(SOCKET_EVENTS_FRONTEND.CONNECT, data)
     }
 
+    // socket 接收到消息
     this.ws!.onmessage = <T = any>(data: MessageEvent<T>) => {
       let msg
       try {
@@ -111,7 +133,7 @@ export default class IMCompony extends IM {
         // message.error('IM 接收到异常数据！')
       }
       if (!msg) return
-
+      // 根据自己公司业务逻辑处理对应事件通知
       if (msg.cmd === SOCKET_EVENTS_BACKEND.AUTH) {
         this.auth(msg)
       } else if (msg.cmd === SOCKET_EVENTS_BACKEND.HEARTBEAT) {
@@ -126,10 +148,11 @@ export default class IMCompony extends IM {
       }
     }
 
+    // socket 关闭事件
     this.ws!.onclose = (data) => {
       this.handleEvent(SOCKET_EVENTS_FRONTEND.CLOSE, data)
     }
-
+    // socket 出错事件
     this.ws!.onerror = (data) => {
       this.wsCloseOrError()
       this.handleEvent(SOCKET_EVENTS_FRONTEND.ERROR, data)
