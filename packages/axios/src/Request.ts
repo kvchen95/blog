@@ -38,7 +38,7 @@ export default class Request {
     return this._instance.request(config)
   }
 
-  public get<T = any>(url: string, config?: ExpandAxiosRequestConfig): Promise<AxiosResponse<BaseApiResponse<T>>> {
+  public get<T = any>(url: string, config?: ExpandAxiosRequestConfig): Promise<T> {
     return this._instance.get(url, config)
   }
 
