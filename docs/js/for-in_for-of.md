@@ -84,8 +84,9 @@ function makeIteration (arr) {
   return {
     next(){
       if (index < arr.length) {
+        value = arr[index++]
         return {
-          value: arr[index++],
+          value,
           done: false
         }
       }
