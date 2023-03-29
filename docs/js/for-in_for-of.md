@@ -85,22 +85,18 @@ function makeIteration (arr) {
     next(){
       if (index < arr.length) {
         value = arr[index++]
-        return {
-          value,
-          done: false
-        }
       }
       return {
         value,
-        done: true
+        done: arr.length === index
       }
     }
   }
 }
 
 const rangeIterator = makeIteration([0, 1, 2])
-console.log(rangeIterator.next().value) // 0
-console.log(rangeIterator.next().value) // 1
-console.log(rangeIterator.next().value) // 2
+console.log(rangeIterator.next()) // {value: 0, done: false}
+console.log(rangeIterator.next()) // {value: 1, done: false}
+console.log(rangeIterator.next()) // {value: 2, done: true}
 ```
 
