@@ -66,17 +66,40 @@ for (const val of obj) {
 ```
 `for of` 用来遍历对象报错了，说了对象不可迭代。为什么会这样呢？
 
-这里就需要贴一下 MDN 了：`for...of` 语句在 **可迭代对象**（包括 `Array`，`Map`，`Set`，`String`，`TypedArray`，`arguments` 对象等等）上创建一个迭代循环，调用自定义迭代钩子，并为每个不同属性的值执行语句。
+这里就需要贴一下 MDN 了：`for...of` 语句在 **可迭代对象**（包括 `Array`，`Map`，`Set`，`String`，`TypedArray`，`arguments` 对象等等）上创建一个迭代循环，
+调用自定义迭代钩子，并为每个不同属性的值执行语句。
 
-重点是 可迭代对象 这5个字，基于这句我们就知道了 `for of` 只能遍历可迭代对象。那么什么是可迭代对象呢？
-可迭代对象就是符合 可迭代协议 和 迭代器协议 的对象。
-
-可迭代协议规定对象必须实现 `@@iterator` 方法（可通过常量 `Symbol.iterator` 访问该属性）。
-
-迭代器协议规定
-
+重点是 可迭代对象 这 5 个字，基于这句我们就知道了 `for of` 只能遍历可迭代对象。那么什么是可迭代对象？可迭代对象其实就是一个提供了迭代器的对象。迭代器又是个什么啊？
 
 ## 迭代器是个啥
 
-**迭代器模式** 其实是一种行为设计模式，它能让你在不暴露集合底层表现形式 （列表、 栈和树等） 的情况下遍历集合中所有的元素。
-基于这点我们就知道了，不管是数组还是 Map，只要这个数据结构能够
+迭代器其实是一个行为型的设计模式，这个设计模式的核心思想就是旨在不暴露数据结构的情况下能够遍历集合中的所有元素。由于迭代器模式实现太重要了，
+所有语言基本都提供了迭代器功能，所以即使你一直在使用它，但你可能没注意到过它。
+
+其实迭代器也很简单，下面实现最简单的迭代器去遍历数组。
+```typescript
+function makeIteration (arr) {
+  let index = 0
+  let value
+  return {
+    next(){
+      if (index < arr.length) {
+        return {
+          value: arr[index++],
+          done: false
+        }
+      }
+      return {
+        value,
+        done: true
+      }
+    }
+  }
+}
+
+const rangeIterator = makeIteration([0, 1, 2])
+console.log(rangeIterator.next().value) // 0
+console.log(rangeIterator.next().value) // 1
+console.log(rangeIterator.next().value) // 2
+```
+
