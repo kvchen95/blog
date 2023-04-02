@@ -1,5 +1,15 @@
 # blog
 
+## 当前文档目录
+
+### TS实战
+
+- [不再自卑，`TS` 封装 `axios` 最佳实践免费送](https://github.com/coveychen95/blog/blob/master/docs/ts/axios.md)
+### JS打破砂锅
+
+- [用第一性原理去看 `EventLoop`](https://github.com/coveychen95/blog/blob/master/docs/js/event-loop.md)
+- [透过 for in 和 for of 的区别，你看到了什么`](https://github.com/coveychen95/blog/blob/master/docs/js/for-in_for-of.md)
+
 ## 为什么要开这个仓库？
 
 我在刚开始进入互联网的时候，为了去学习一个新的知识，
@@ -23,13 +33,3 @@
 
 觉得有必要把这个过程记录下来，于是开了这个仓库。
 
-
-## 当前文档目录
-
-### TS实战
-
-- [不再自卑，`TS` 封装 `axios` 最佳实践免费送](https://github.com/coveychen95/blog/blob/master/docs/ts/axios.md)
-### JS打破砂锅
-
-- [用第一性原理去看 `EventLoop`](https://github.com/coveychen95/blog/blob/master/docs/js/event-loop.md)
-- [透过 for in 和 for of 的区别，你看到了什么`](https://github.com/coveychen95/blog/blob/master/docs/js/for-in_for-of.md)
