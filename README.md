@@ -32,3 +32,4 @@
 ### JS打破砂锅
 
 - [用第一性原理去看 `EventLoop`](https://github.com/coveychen95/blog/blob/master/docs/js/event-loop.md)
+- [透过 for in 和 for of 的区别，你看到了什么`](https://github.com/coveychen95/blog/blob/master/docs/js/for-in_for-of.md)

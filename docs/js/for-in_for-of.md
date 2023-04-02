@@ -1,4 +1,4 @@
-# 不再是你以为的 for in 和 for of 有什么区别
+# 透过 for in 和 for of 的区别，你看到了什么
 
 ## 简介
 经常看到有人问 `for in` 和 `for of` 的区别，基本网上去搜几篇文章也都能窥探一二，
@@ -12,13 +12,13 @@
 
 ## for in 和 for of 基本介绍
 
-要了解 `for in` 和 `for of`，我们需要先看看 `for in` 和 `for of` 的历史，`for in` 在 `js` 第一个版本就实现了，和 `for` 循环是一起出现的；而 `for of` 的出现是在 js 大更新的 ES6 时期。
-需要说明的是早期 js 还没有现在这么复杂，对象和数组已经能完全满足我们的开发，所以早期将for 循环用于遍历数组，而 for in 用于遍历对象。各司其职，就已经足够了。
-而 `for of` 是在 ES6 在新增的，与 for of 同时出现的还有 Map Set 这些新的数据存储结构，已有的 for 循环显然满足不了各种新结构的遍历功能，for of 的出现弥补了新的数据结构的遍历功能缺失。
+要了解 `for in` 和 `for of`，我们需要先看看 `for in` 和 `for of` 的历史，`for in` 在 `js` 第一个版本就实现了，和 `for` 循环是一起出现的；而 `for of` 的出现是在 `js` 大更新的 `ES6` 时期。
+需要说明的是早期 `js` 还没有现在这么复杂，对象和数组已经能完全满足我们的开发，所以早期将 `for` 循环用于遍历数组，而 `for in` 用于遍历对象。各司其职，就已经足够了。
+而 `for of` 是在 `ES6` 在新增的，与 `for of` 同时出现的还有 `Map`、 `Set` 这些新的数据存储结构，已有的 `for` 循环显然满足不了各种新结构的遍历功能，而 `for of` 的出现弥补了新的数据结构的遍历功能缺失。
 
 ### for in 的基本使用
 
-当我们拥有一个对象的时候，我们有时候需要知道这个对象有哪些属性，或者统计对象的属性个数的时候就可以使用 for in。
+当我们拥有一个对象的时候，我们有时候需要知道这个对象有哪些属性，或者统计对象的属性个数的时候就可以使用 `for in`。
 
 ```javascript
 // for in 遍历一个对象
@@ -47,85 +47,25 @@ for (const [key, value] of map) {
 // c false
 ```
 
-## for in 和 for of 的差异
+## 为什么 for in 能够遍历数组？
 
+前面我们提到了 `for in` 是用来遍历对象的，那为什么 `for in` 也能遍历数组呢？
+这里其实就不得不提一嘴了，`js` 的数组结构其实不是真正的数组结构，
+这个其实不难发现，你打开任何一个介绍数据结构的书籍里面都会提到，数组是一个连续的存储空间。
+所以数组的长度一定是固定的，而且必须存储统一类型的数据。而 `js` 的数组其实是基于对象封装的，
+所以你可以理解为在 `js` 里，数组就是一个实现了数组方法的对象。所以 `for in` 能遍历数组就一点也不奇怪了。
 
+## 为什么 for of 不能遍历对象
 
+在开头就讲到了，`ES6` 新增了新的数据结构，比如 `Map`，而且考虑到 `js` 的火热，那么很有可能还会有更多的数据结构出现，
+早期只有对象和数组，`for` 循环和 `for in` 也不是那么难理解，但是考虑到后续的拓展性，我们需要一种新的迭代方法，
+它最好能够支持所有数据结构的遍历。听起来有点困难，但其实这是一个很简单的事情，设计模式里面就提到了我们的迭代器模式，迭代器模式的核心思想就是旨在不暴露数据结构的情况下能够遍历集合中的所有元素。
+只不过由于迭代器模式是在是太重要了，所以你可能都注意不到它。大家在看 `for of` 的使用介绍中，都会看到这么一句话，`for of` 只能用来遍历可迭代对象。这句话就说明了 `for of` 遍历的其实不是我们的数据结构，而是数据结构提供的迭代器。
+那么 `js` 中哪些数据结构提供了迭代器呢？根据 `MDN` 的数据，已知的有 `Array`，`Map`，`Set`，`String`，`TypedArray`，`arguments` 等，就是不包含对象。
 
+### 给对象实现个迭代器
 
-
-
-
-
-
-
-
-
-
-
-
-
-for in 和 for of 能混用吗？
-```typescript
-const map = { a: 'string', b: 1, c: false }
-
-for (const key in map) {
-  console.log(key)
-}
-// 0
-// 1
-// 2
-```
-可以看到 for in 也是可以遍历数组的，key 对应数组的下标。那么 for of 能用来遍历对象吗？
-
-```typescript
-const obj = { a: 'string', b: 1, c: false }
-
-for (const val of obj) {
-  console.log(val)
-}
-// ERROR: Uncaught TypeError: obj is not iterable at <anonymous>:3:19
-```
-`for of` 用来遍历对象报错了，说了对象不可迭代。为什么会这样呢？
-
-这里就需要贴一下 MDN 了：`for...of` 语句在 **可迭代对象**（包括 `Array`，`Map`，`Set`，`String`，`TypedArray`，`arguments` 对象等等）上创建一个迭代循环，
-调用自定义迭代钩子，并为每个不同属性的值执行语句。
-
-重点是 可迭代对象 这 5 个字，基于这句我们就知道了 `for of` 只能遍历可迭代对象。那么什么是可迭代对象？可迭代对象其实就是一个提供了迭代器的对象。迭代器又是个什么啊？
-
-## 迭代器是个啥
-
-迭代器其实是一个行为型的设计模式，这个设计模式的核心思想就是旨在不暴露数据结构的情况下能够遍历集合中的所有元素。由于迭代器模式实现太重要了，
-所有语言基本都提供了迭代器功能，所以即使你一直在使用它，但你可能没注意到过它。
-
-其实迭代器实现也很简单，下面实现最简单的迭代器去遍历数组。
-```typescript
-function makeIteration (arr) {
-  let index = 0
-  return {
-    next(){
-      if (index < arr.length) {
-        return {
-          value: arr[index++],
-          done: false
-        }
-      }
-      return {
-        value: undefined,
-        done: true
-      }
-    }
-  }
-}
-
-const rangeIterator = makeIteration([0, 1, 2])
-console.log(rangeIterator.next()) // {value: 0, done: false}
-console.log(rangeIterator.next()) // {value: 1, done: false}
-console.log(rangeIterator.next()) // {value: 2, done: false}
-console.log(rangeIterator.next()) // {value: undefined, done: true}
-```
-
-既然对象是因为没有迭代器，那我门自己给它实现一个吧。
+刚刚说了 `for of` 遍历的是数据结构提供的迭代器，既然对象没有，那我们尝试实现一个看看：
 
 ```javascript
 // 给对象添加迭代器
@@ -157,15 +97,10 @@ for (const val of obj) {
 // 1
 // false
 
-// 完美！
+// 完美运行！
 ```
+## 结束
 
+快乐的时间总是短暂，这片文章到这里就结束了。但是以后再有人问你 `for in` 和 `for of` 的区别，我可不允许你不知道了啊！
 
-
-我们可以得出结论，`for in` 遍历的是对象的属性，而 `for of` 遍历的是迭代器。
-
-
-
-
-
-
+> 附上 github，欢迎👏 star✨：[https://github.com/coveychen95/blog](https://github.com/coveychen95/blog)
