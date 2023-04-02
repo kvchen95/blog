@@ -1,47 +1,69 @@
-# 为了搞清楚 for in 和 for of 的区别，我刨了它的祖坟
+# 不再是你以为的 for in 和 for of 有什么区别
 
-## 目录
+## 简介
+经常看到有人问 `for in` 和 `for of` 的区别，基本网上去搜几篇文章也都能窥探一二，
+但是当我真正使用下来，发现里面其实还是有很多问题，比如：
 
-- for in 和 for of 基本介绍
-- for in 和 for of 的差异
-- 迭代器是个啥
-- 还记得当年的 yield 吗
-- promise 与 迭代器
+- 为什么有了 `for` 循环，还会有 `for in` 和 `for of` ？
+- 为什么 `for in` 和 `for of` 都能遍历数组？
+- 为什么 `for of` 不能遍历对象
 
-
+当我尝试去把这些问题一一解开的时候，发现事情并不是那么简单。下面进入正题。
 
 ## for in 和 for of 基本介绍
 
-这里就不贴 `MDN` 的机器人定义了，其实说明白 `for in` 很简单，我们学 `js` 的时候就学了 `for` 循环，那你能用 `for` 循环去遍历一个对象吗？显然不能，所以自然就有了 `for in` 的出现。说白了 `for in` 的出现就是为了解决无法遍历对象属性的问题，当我们拥有一个对象的时候，我们有时候需要知道这个对象有哪些属性，或者统计对象的属性个数的时候就可以使用它。
+要了解 `for in` 和 `for of`，我们需要先看看 `for in` 和 `for of` 的历史，`for in` 在 `js` 第一个版本就实现了，和 `for` 循环是一起出现的；而 `for of` 的出现是在 js 大更新的 ES6 时期。
+需要说明的是早期 js 还没有现在这么复杂，对象和数组已经能完全满足我们的开发，所以早期将for 循环用于遍历数组，而 for in 用于遍历对象。各司其职，就已经足够了。
+而 `for of` 是在 ES6 在新增的，与 for of 同时出现的还有 Map Set 这些新的数据存储结构，已有的 for 循环显然满足不了各种新结构的遍历功能，for of 的出现弥补了新的数据结构的遍历功能缺失。
+
+### for in 的基本使用
+
+当我们拥有一个对象的时候，我们有时候需要知道这个对象有哪些属性，或者统计对象的属性个数的时候就可以使用 for in。
 
 ```javascript
+// for in 遍历一个对象
 const obj = { a: 'string', b: 1, c: false }
 for (const key in obj) {
   console.log(key, obj[key])
 }
+// 结果如下：
 // a string
 // b 1
 // c false
 ```
 
-而 `for of` 是个啥呢？我们知道 `ES6` 迎来了重大改革，新增了 `Map` 和 `Set` 标准内置对象。但是如果用户想要遍历 `Map` 和 `Set` 呢？用 `for` 循环吗，它是用于遍历数组的，那 `for in` 可以吗？不好意思，不支持。那怎么办呢？这样吧，再给你实现一个 `for of`，完美解决。
+### for of 的基本使用
 
 ```javascript
+// for of 遍历一个 Map
 const map = new Map([['a', 'string'], ['b', 1], ['c', false]])
-
-for (const key in map) {
-  console.log(key)
-}
 
 for (const [key, value] of map) {
   console.log(key, value)
 }
+// 结果如下：
 // a string
 // b 1
 // c false
 ```
 
 ## for in 和 for of 的差异
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 for in 和 for of 能混用吗？
 ```typescript
@@ -80,15 +102,17 @@ for (const val of obj) {
 ```typescript
 function makeIteration (arr) {
   let index = 0
-  let value
   return {
     next(){
       if (index < arr.length) {
-        value = arr[index++]
+        return {
+          value: arr[index++],
+          done: false
+        }
       }
       return {
-        value,
-        done: arr.length === index
+        value: undefined,
+        done: true
       }
     }
   }
@@ -97,6 +121,51 @@ function makeIteration (arr) {
 const rangeIterator = makeIteration([0, 1, 2])
 console.log(rangeIterator.next()) // {value: 0, done: false}
 console.log(rangeIterator.next()) // {value: 1, done: false}
-console.log(rangeIterator.next()) // {value: 2, done: true}
+console.log(rangeIterator.next()) // {value: 2, done: false}
+console.log(rangeIterator.next()) // {value: undefined, done: true}
 ```
+
+既然对象是因为没有迭代器，那我门自己给它实现一个吧。
+
+```javascript
+// 给对象添加迭代器
+Object.prototype[Symbol.iterator] = function() {
+  const values = Object.values(this)
+  let index = 0
+  return {
+    next() {
+      if (index < values.length) {
+        return {
+          value: values[index++],
+          done: false
+        }
+      }
+      return {
+        value: undefined,
+        done: true
+      }
+    }
+  }
+}
+
+const obj = { a: 'string', b: 1, c: false }
+// 测试一下
+for (const val of obj) {
+  console.log(val)
+}
+// string
+// 1
+// false
+
+// 完美！
+```
+
+
+
+我们可以得出结论，`for in` 遍历的是对象的属性，而 `for of` 遍历的是迭代器。
+
+
+
+
+
 
