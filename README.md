@@ -12,4 +12,4 @@
 - [js 异常与错误处理，如何正确的去处理错误？](https://github.com/coveychen95/blog/blob/master/docs/js/error.md)
 
 ## License
-** 所有文章为作者原创，仅供大家交流学习，如需转载，请注明作者、出处。 **
+** 所有文章为作者原创，仅供大家交流学习，如需转载，请注明作者、出处、原链接。 **
