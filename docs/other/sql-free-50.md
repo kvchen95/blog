@@ -574,3 +574,5 @@ ON
 WHERE transaction_id IS NULL
 GROUP BY customer_id;
 ```
+
+
