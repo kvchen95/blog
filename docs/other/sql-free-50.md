@@ -636,3 +636,479 @@ AND
     w2.Temperature > w1.Temperature
 ```
 
+### 1661. 每台机器的进程平均运行时间
+
+表: `Activity`
+
+```
++----------------+---------+
+| Column Name    | Type    |
++----------------+---------+
+| machine_id     | int     |
+| process_id     | int     |
+| activity_type  | enum    |
+| timestamp      | float   |
++----------------+---------+
+```
+该表展示了一家工厂网站的用户活动。
+(machine_id, process_id, activity_type) 是当前表的主键（具有唯一值的列的组合）。
+machine_id 是一台机器的ID号。
+process_id 是运行在各机器上的进程ID号。
+activity_type 是枚举类型 ('start', 'end')。
+timestamp 是浮点类型,代表当前时间(以秒为单位)。
+'start' 代表该进程在这台机器上的开始运行时间戳 , 'end' 代表该进程在这台机器上的终止运行时间戳。
+同一台机器，同一个进程都有一对开始时间戳和结束时间戳，而且开始时间戳永远在结束时间戳前面。
+
+现在有一个工厂网站由几台机器运行，每台机器上运行着 **相同数量的进程** 。编写解决方案，计算每台机器各自完成一个进程任务的平均耗时。
+
+完成一个进程任务的时间指进程的`'end' 时间戳` 减去 `'start' 时间戳`。平均耗时通过计算每台机器上所有进程任务的总耗费时间除以机器上的总进程数量获得。
+
+结果表必须包含`machine_id（机器ID）` 和对应的 **average time（平均耗时）** 别名 `processing_time`，且**四舍五入保留3位小数。**
+
+以 **任意顺序** 返回表。
+
+具体参考例子如下。
+
+**示例 1:**
+
+**输入：**
+Activity table:
+```
++------------+------------+---------------+-----------+
+| machine_id | process_id | activity_type | timestamp |
++------------+------------+---------------+-----------+
+| 0          | 0          | start         | 0.712     |
+| 0          | 0          | end           | 1.520     |
+| 0          | 1          | start         | 3.140     |
+| 0          | 1          | end           | 4.120     |
+| 1          | 0          | start         | 0.550     |
+| 1          | 0          | end           | 1.550     |
+| 1          | 1          | start         | 0.430     |
+| 1          | 1          | end           | 1.420     |
+| 2          | 0          | start         | 4.100     |
+| 2          | 0          | end           | 4.512     |
+| 2          | 1          | start         | 2.500     |
+| 2          | 1          | end           | 5.000     |
++------------+------------+---------------+-----------+
+```
+**输出：**
+```
++------------+-----------------+
+| machine_id | processing_time |
++------------+-----------------+
+| 0          | 0.894           |
+| 1          | 0.995           |
+| 2          | 1.456           |
++------------+-----------------+
+```
+**解释：**
+一共有3台机器,每台机器运行着两个进程.
+机器 0 的平均耗时: ((1.520 - 0.712) + (4.120 - 3.140)) / 2 = 0.894
+机器 1 的平均耗时: ((1.550 - 0.550) + (1.420 - 0.430)) / 2 = 0.995
+机器 2 的平均耗时: ((4.512 - 4.100) + (5.000 - 2.500)) / 2 = 1.456
+
+#### 解答
+
+```sql
+SELECT 
+    a1.machine_id,
+    ROUND(AVG(a2.timestamp - a1.timestamp), 3) AS processing_time
+FROM 
+    Activity a1
+    LEFT JOIN Activity a2
+ON  a1.machine_id = a2.machine_id
+AND a1.process_id = a2.process_id
+AND a1.activity_type = 'start' AND a2.activity_type = 'end'
+GROUP BY a1.machine_id
+```
+
+```sql
+SELECT 
+    machine_id,
+    ROUND(
+        SUM(
+            IF(activity_type = 'start', -timestamp, timestamp)
+        ) / COUNT(DISTINCT process_id),
+        3
+    ) AS processing_time
+FROM Activity
+GROUP BY machine_id
+```
+
+### 577. 员工奖金
+
+表：`Employee` 
+
+```
++-------------+---------+
+| Column Name | Type    |
++-------------+---------+
+| empId       | int     |
+| name        | varchar |
+| supervisor  | int     |
+| salary      | int     |
++-------------+---------+
+```
+empId 是该表中具有唯一值的列。
+该表的每一行都表示员工的姓名和 id，以及他们的工资和经理的 id。
+
+表：`Bonus`
+
+```
++-------------+------+
+| Column Name | Type |
++-------------+------+
+| empId       | int  |
+| bonus       | int  |
++-------------+------+
+```
+empId 是该表具有唯一值的列。
+empId 是 Employee 表中 empId 的外键(reference 列)。
+该表的每一行都包含一个员工的 id 和他们各自的奖金。
+
+编写解决方案，报告每个奖金 **少于** `1000` 的员工的姓名和奖金数额。
+
+以 **任意顺序** 返回结果表。
+
+结果格式如下所示。
+
+**示例 1：**
+
+**输入：**
+Employee table:
+```
++-------+--------+------------+--------+
+| empId | name   | supervisor | salary |
++-------+--------+------------+--------+
+| 3     | Brad   | null       | 4000   |
+| 1     | John   | 3          | 1000   |
+| 2     | Dan    | 3          | 2000   |
+| 4     | Thomas | 3          | 4000   |
++-------+--------+------------+--------+
+```
+Bonus table:
+```
++-------+-------+
+| empId | bonus |
++-------+-------+
+| 2     | 500   |
+| 4     | 2000  |
++-------+-------+
+```
+**输出：**
+```
++------+-------+
+| name | bonus |
++------+-------+
+| Brad | null  |
+| John | null  |
+| Dan  | 500   |
++------+-------+
+```
+
+#### 解答
+
+```sql
+SELECT name, bonus
+FROM  Employee e
+LEFT JOIN Bonus b
+ON e.empId = b.empId
+WHERE b.bonus IS NULL OR b.bonus < 1000
+```
+
+### 1280. 学生们参加各科测试的次数
+
+学生表: `Students`
+
+```
++---------------+---------+
+| Column Name   | Type    |
++---------------+---------+
+| student_id    | int     |
+| student_name  | varchar |
++---------------+---------+
+```
+在 SQL 中，主键为 student_id（学生ID）。
+该表内的每一行都记录有学校一名学生的信息。
+
+科目表: `Subjects`
+
+```
++--------------+---------+
+| Column Name  | Type    |
++--------------+---------+
+| subject_name | varchar |
++--------------+---------+
+```
+在 SQL 中，主键为 subject_name（科目名称）。
+每一行记录学校的一门科目名称。
+
+考试表: `Examinations`
+
+```
++--------------+---------+
+| Column Name  | Type    |
++--------------+---------+
+| student_id   | int     |
+| subject_name | varchar |
++--------------+---------+
+```
+这个表可能包含重复数据（换句话说，在 SQL 中，这个表没有主键）。
+学生表里的一个学生修读科目表里的每一门科目。
+这张考试表的每一行记录就表示学生表里的某个学生参加了一次科目表里某门科目的测试。
+
+查询出每个学生参加每一门科目测试的次数，结果按 `student_id` 和 `subject_name` 排序。
+
+查询结构格式如下所示。
+
+**示例 1：**
+
+**输入：**
+Students table:
+```
++------------+--------------+
+| student_id | student_name |
++------------+--------------+
+| 1          | Alice        |
+| 2          | Bob          |
+| 13         | John         |
+| 6          | Alex         |
++------------+--------------+
+```
+Subjects table:
+```
++--------------+
+| subject_name |
++--------------+
+| Math         |
+| Physics      |
+| Programming  |
++--------------+
+```
+Examinations table:
+```
++------------+--------------+
+| student_id | subject_name |
++------------+--------------+
+| 1          | Math         |
+| 1          | Physics      |
+| 1          | Programming  |
+| 2          | Programming  |
+| 1          | Physics      |
+| 1          | Math         |
+| 13         | Math         |
+| 13         | Programming  |
+| 13         | Physics      |
+| 2          | Math         |
+| 1          | Math         |
++------------+--------------+
+```
+**输出：**
+```
++------------+--------------+--------------+----------------+
+| student_id | student_name | subject_name | attended_exams |
++------------+--------------+--------------+----------------+
+| 1          | Alice        | Math         | 3              |
+| 1          | Alice        | Physics      | 2              |
+| 1          | Alice        | Programming  | 1              |
+| 2          | Bob          | Math         | 1              |
+| 2          | Bob          | Physics      | 0              |
+| 2          | Bob          | Programming  | 1              |
+| 6          | Alex         | Math         | 0              |
+| 6          | Alex         | Physics      | 0              |
+| 6          | Alex         | Programming  | 0              |
+| 13         | John         | Math         | 1              |
+| 13         | John         | Physics      | 1              |
+| 13         | John         | Programming  | 1              |
++------------+--------------+--------------+----------------+
+```
+**解释：**
+结果表需包含所有学生和所有科目（即便测试次数为0）：
+Alice 参加了 3 次数学测试, 2 次物理测试，以及 1 次编程测试；
+Bob 参加了 1 次数学测试, 1 次编程测试，没有参加物理测试；
+Alex 啥测试都没参加；
+John  参加了数学、物理、编程测试各 1 次。
+
+#### 解答
+
+```sql
+SELECT s.student_id, s.student_name, b.subject_name, COUNT(e.subject_name) as attended_exams
+FROM Students s CROSS JOIN Subjects b
+LEFT JOIN Examinations as e
+ON s.student_id = e.student_id AND b.subject_name = e.subject_name
+GROUP BY s.student_id, b.subject_name
+ORDER BY s.student_id, b.subject_name
+```
+
+### 570. 至少有5名直接下属的经理
+
+表: `Employee`
+
+```
++-------------+---------+
+| Column Name | Type    |
++-------------+---------+
+| id          | int     |
+| name        | varchar |
+| department  | varchar |
+| managerId   | int     |
++-------------+---------+
+```
+id 是此表的主键（具有唯一值的列）。
+该表的每一行表示雇员的名字、他们的部门和他们的经理的id。
+如果managerId为空，则该员工没有经理。
+没有员工会成为自己的管理者。
+
+编写一个解决方案，找出至少有**五个直接下属**的经理。
+
+以 **任意顺序** 返回结果表。
+
+查询结果格式如下所示。
+
+**示例 1:**
+
+**输入:** 
+Employee 表:
+```
++-----+-------+------------+-----------+
+| id  | name  | department | managerId |
++-----+-------+------------+-----------+
+| 101 | John  | A          | Null      |
+| 102 | Dan   | A          | 101       |
+| 103 | James | A          | 101       |
+| 104 | Amy   | A          | 101       |
+| 105 | Anne  | A          | 101       |
+| 106 | Ron   | B          | 101       |
++-----+-------+------------+-----------+
+```
+**输出:** 
+```
++------+
+| name |
++------+
+| John |
++------+
+```
+
+#### 解答
+
+```sql
+SELECT m.name
+FROM Employee e JOIN Employee m
+ON m.id = e.managerId
+GROUP BY m.id
+HAVING(COUNT(e.managerId) >= 5)
+```
+
+```sql
+SELECT Report.name
+FROM (
+    SELECT m.name, COUNT(e.managerId) cnt
+    FROM Employee e JOIN Employee m
+    ON m.id = e.managerId
+    GROUP BY m.id
+) as Report
+WHERE Report.cnt >= 5
+```
+
+### 1934. 确认率
+
+表: `Signups`
+
+```
++----------------+----------+
+| Column Name    | Type     |
++----------------+----------+
+| user_id        | int      |
+| time_stamp     | datetime |
++----------------+----------+
+```
+User_id是该表的主键。
+每一行都包含ID为user_id的用户的注册时间信息。
+
+表: `Confirmations`
+
+```
++----------------+----------+
+| Column Name    | Type     |
++----------------+----------+
+| user_id        | int      |
+| time_stamp     | datetime |
+| action         | ENUM     |
++----------------+----------+
+```
+(user_id, time_stamp)是该表的主键。
+user_id是一个引用到注册表的外键。
+action是类型为('confirmed'， 'timeout')的ENUM
+该表的每一行都表示ID为user_id的用户在time_stamp请求了一条确认消息，该确认消息要么被确认('confirmed')，要么被过期('timeout')。
+
+用户的 **确认率** 是 `'confirmed'` 消息的数量除以请求的确认消息的总数。没有请求任何确认消息的用户的确认率为 `0` 。确认率四舍五入到 **小数点后两位** 。
+
+编写一个SQL查询来查找每个用户的 确认率 。  
+  
+以 任意顺序 返回结果表。  
+  
+查询结果格式如下所示。  
+  
+**示例1:**
+
+**输入：**
+Signups 表:
+```
++---------+---------------------+
+| user_id | time_stamp          |
++---------+---------------------+
+| 3       | 2020-03-21 10:16:13 |
+| 7       | 2020-01-04 13:57:59 |
+| 2       | 2020-07-29 23:09:44 |
+| 6       | 2020-12-09 10:39:37 |
++---------+---------------------+
+```
+Confirmations 表:
+```
++---------+---------------------+-----------+
+| user_id | time_stamp          | action    |
++---------+---------------------+-----------+
+| 3       | 2021-01-06 03:30:46 | timeout   |
+| 3       | 2021-07-14 14:00:00 | timeout   |
+| 7       | 2021-06-12 11:57:29 | confirmed |
+| 7       | 2021-06-13 12:58:28 | confirmed |
+| 7       | 2021-06-14 13:59:27 | confirmed |
+| 2       | 2021-01-22 00:00:00 | confirmed |
+| 2       | 2021-02-28 23:59:59 | timeout   |
++---------+---------------------+-----------+
+```
+**输出:** 
+```
++---------+-------------------+
+| user_id | confirmation_rate |
++---------+-------------------+
+| 6       | 0.00              |
+| 3       | 0.00              |
+| 7       | 1.00              |
+| 2       | 0.50              |
++---------+-------------------+
+```
+**解释:**
+用户 6 没有请求任何确认消息。确认率为 0。
+用户 3 进行了 2 次请求，都超时了。确认率为 0。
+用户 7 提出了 3 个请求，所有请求都得到了确认。确认率为 1。
+用户 2 做了 2 个请求，其中一个被确认，另一个超时。确认率为 1 / 2 = 0.5。
+
+#### 解答
+
+```sql
+SELECT
+    s.user_id,
+    ROUND(IFNULL(AVG(c.action='confirmed'), 0), 2) AS confirmation_rate
+FROM
+    Signups AS s
+LEFT JOIN
+    Confirmations AS c
+ON
+    s.user_id = c.user_id
+GROUP BY
+    s.user_id
+```
+
+## 聚合函数
